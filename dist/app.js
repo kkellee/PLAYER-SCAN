@@ -18,16 +18,16 @@ form.addEventListener('submit', (event) => {
   event.preventDefault();
   const value = input.value.trim();
   if (!value) {
-    error.textContent = 'Enter a Steam ID or profile URL to continue.';
+    error.textContent = 'Введи Steam ID или ссылку на профиль.';
     input.focus();
     return;
   }
   if (!looksLikeSteamInput(value)) {
-    error.textContent = 'That does not look like a Steam ID or Steam profile URL.';
+    error.textContent = 'Проверь Steam ID или ссылку на профиль Steam.';
     input.focus();
     return;
   }
-  error.textContent = 'Profile scanning is coming soon.';
+  error.textContent = 'Сканирование профиля скоро появится.';
 });
 
 input.addEventListener('input', () => {

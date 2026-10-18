@@ -1,3 +1,4 @@
+import { accountInput } from './analysis.mjs';
 const form = document.querySelector('#scan-form');
 const input = document.querySelector('#steam-id');
 const error = document.querySelector('#form-error');
@@ -22,15 +23,12 @@ form.addEventListener('submit', (event) => {
     input.focus();
     return;
   }
-  if (!looksLikeSteamInput(value)) {
-    error.textContent = 'Проверь Steam ID или ссылку на профиль Steam.';
-    input.focus();
-    return;
+  try { accountInput(value); } catch (e) {
+    error.textContent = e.message; input.focus(); return;
   }
-  error.textContent = 'Сканирование профиля скоро появится.';
+  location.href = './report.html?id=' + encodeURIComponent(value);
 });
 
 input.addEventListener('input', () => {
   if (error.textContent) error.textContent = '';
 });
-

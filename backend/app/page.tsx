@@ -1,0 +1,1 @@
+﻿export default function Home(){return <main style={{padding:48,fontFamily:"sans-serif",background:"#090b10",color:"white",minHeight:"100vh"}}><h1>PLAYER SCAN API</h1><p>Сервер анализа Dota 2.</p><a href="https://kkellee.github.io/PLAYER-SCAN/">Открыть PLAYER SCAN</a></main>}

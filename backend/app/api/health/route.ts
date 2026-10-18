@@ -1,0 +1,2 @@
+import { env } from 'cloudflare:workers';
+export async function GET(){const e=env as unknown as Record<string,any>;return Response.json({service:'PLAYER SCAN',version:'1.0.0-beta',database:!!e.DB,providers:{opendota:e.OPENDOTA_API_KEY?'key-configured':'free-quota',steam:!!e.STEAM_API_KEY,stratz:!!e.STRATZ_API_TOKEN}},{headers:{'Access-Control-Allow-Origin':'https://kkellee.github.io','Cache-Control':'no-store'}});}

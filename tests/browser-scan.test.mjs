@@ -52,3 +52,8 @@ test('bad IDs and vanity links make no API requests',async()=>{
 test('cancelled scan makes no requests',async()=>{
   const h=harness();const controller=new AbortController();controller.abort();await assert.rejects(h.scan('123',{signal:controller.signal}),e=>e.name==='AbortError');assert.equal(h.calls.length,0);
 });
+test('profile 404 identifies the requested account and suggests checking all digits',async()=>{
+  const h=harness(url=>url.endsWith('/players/92087567')?Response.json({error:'Not Found'},{status:404}):null);
+  await assert.rejects(h.scan('092087567'),e=>e.status===404&&e.message.includes('92087567')&&e.message.includes('все цифры'));
+  assert.equal(h.calls.length,1);
+});

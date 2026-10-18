@@ -1,4 +1,4 @@
-import { createBrowserScanner } from './browser-scan.mjs?v=free-2';
+import { createBrowserScanner } from './browser-scan.mjs?v=free-3';
 const scanPlayer = createBrowserScanner();
 document.querySelector('#loading .muted').textContent='Данные получаем напрямую из OpenDota и сохраняем в этом браузере. Первая проверка обычно занимает 1–2 минуты. Повторная использует сохранённый отчёт.';
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

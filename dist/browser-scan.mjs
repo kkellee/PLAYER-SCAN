@@ -105,7 +105,16 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
       await write('quota', quota, 172800000);
       throw new ScanError(daily ? 'Дневной лимит OpenDota для твоего подключения исчерпан. Полученные матчи сохранены. Повтори завтра.' : 'OpenDota просит снизить частоту запросов. Подожди минимум минуту и повтори — загруженные матчи сохранены.', 429);
     }
-    if (!response.ok) throw new ScanError(response.status === 404 ? 'Данные не найдены в OpenDota.' : 'OpenDota временно не вернула данные.', response.status);
+    if (!response.ok) {
+      let message = 'OpenDota временно не вернула данные.';
+      if (response.status === 404) {
+        const player = path.match(/^\/players\/(\d+)(\/recentMatches)?$/);
+        message = player
+          ? `OpenDota не вернула ${player[2] ? 'историю матчей' : 'профиль'} для Dota ID ${player[1]}. Проверь, что скопированы все цифры ID. Можно ввести полную числовую ссылку Steam /profiles/7656… Отсутствие данных в OpenDota не означает, что Steam-аккаунта не существует.`
+          : 'Данные матча не найдены в OpenDota.';
+      }
+      throw new ScanError(message, response.status);
+    }
     let value;
     try { value = transform(await response.json()); }
     catch { throw new ScanError('OpenDota вернула неполные данные. Попробуй позже.', 502); }

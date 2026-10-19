@@ -72,25 +72,27 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
   const read = async key => { const r = await storage.get(PREFIX + key); return r && r.expires > clock() ? r.value : null; };
   const write = (key, value, ttl) => storage.set(PREFIX + key, {value, saved:clock(), expires:clock()+ttl});
   const aborted = signal => { if (signal?.aborted) throw new DOMException('Отменено', 'AbortError'); };
-  async function request(path, ttl, signal, progress, transform = x => x) {
+  async function request(path, ttl, signal, progress, transform = x => x, options = {}) {
     aborted(signal);
-    const existing = await read(path);
+    const cacheKey = options.method === 'POST' ? 'submit:'+path : path;
+    const existing = await read(cacheKey);
     if (existing !== null) return existing;
     const quota = await read('quota') || { day:Math.floor(clock()/86400000), count:0, next:0, blockedUntil:0 };
     const day = Math.floor(clock()/86400000);
     if (quota.day !== day) { quota.day = day; quota.count = 0; }
     if (quota.blockedUntil > clock()) throw new ScanError('OpenDota временно ограничила запросы. Уже полученные матчи сохранены. Повтори после ' + new Date(quota.blockedUntil).toLocaleString('ru-RU') + '.', 429);
-    if (quota.count >= 2000) throw new ScanError('Достигнут дневной предел запросов этого браузера. Сохранённые отчёты доступны; новые проверки — завтра.', 429);
+    const cost = options.method === 'POST' ? 10 : 1;
+    if (quota.count + cost > 2000) throw new ScanError('Достигнут дневной предел запросов. Новые проверки — завтра.', 429);
     if (quota.next > clock()) await sleep(quota.next-clock());
     aborted(signal);
-    quota.count++;
-    quota.next = clock() + 1600;
+    quota.count += cost;
+    quota.next = clock() + 1600 * cost;
     await write('quota', quota, 172800000);
     let response;
     try {
       const timeout = AbortSignal.timeout(25000);
       response = await fetcher('https://api.opendota.com/api' + path, {
-        credentials:'omit', signal:signal ? AbortSignal.any([signal, timeout]) : timeout,
+        method:options.method || 'GET', credentials:'omit', signal:signal ? AbortSignal.any([signal, timeout]) : timeout,
         headers:{Accept:'application/json'}
       });
     } catch (error) {
@@ -120,10 +122,10 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
     catch { throw new ScanError('OpenDota вернула неполные данные. Попробуй позже.', 502); }
     // Unparsed match data is refreshed sooner so new replay analysis can appear.
     const actualTTL = path.startsWith('/matches/') && value.version == null ? 900000 : ttl;
-    await write(path, value, actualTTL);
+    await write(cacheKey, value, actualTTL);
     return value;
   }
-  return async function scan(input, { signal, onProgress = () => {} } = {}) {
+  const scan = async function(input, { signal, onProgress = () => {} } = {}) {
     const {accountId:id, vanity} = accountInput(input);
     if (vanity) throw new ScanError('Для ссылки /id/имя нужен отдельный доступ Steam. Сейчас введи числовой Dota ID, Steam ID или ссылку /profiles/7656…', 422);
     onProgress('Проверяем сохранённый отчёт…', 0);
@@ -161,4 +163,43 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
       return report;
     });
   };
+  const validMatch = id => {if(!Number.isSafeInteger(id)||id<=0)throw new ScanError('Некорректный номер матча.',400);};
+  scan.parsingStates = async report => Promise.all(report.matches.map(async m=>({...await read('replay:'+m.matchId),matchId:m.matchId,hero:m.hero,alreadyParsed:m.parsed})));
+  scan.requestParsing = async (report,{signal,onProgress=()=>{}}={}) => lock(async()=>{
+    const states=await scan.parsingStates(report);
+    const candidates=states.filter(s=>!s.alreadyParsed&&!s.status).slice(0,3);
+    for(const m of candidates){
+      validMatch(m.matchId);aborted(signal);onProgress(`Отправляем реплей: ${m.hero}…`);
+      try {
+        const result=await request('/request/'+m.matchId,86400000,signal,onProgress,x=>x,{method:'POST'});
+        const jobId=String(result?.job?.jobId||'');
+        if(!/^\d+$/.test(jobId))throw new ScanError('Не удалось подтвердить постановку реплея в очередь.',502);
+        await write('replay:'+m.matchId,{jobId,status:'queued'},86400000);
+      }catch(e){
+        if([400,404,410].includes(e.status)){await write('replay:'+m.matchId,{status:'unavailable'},86400000);continue;}
+        throw e;
+      }
+    }
+    return scan.parsingStates(report);
+  });
+  scan.checkParsing = async (report,{signal,onProgress=()=>{}}={}) => lock(async()=>{
+    const states=await scan.parsingStates(report);
+    let completed=0;
+    for(const m of states.filter(s=>s.status==='queued')){
+      aborted(signal);onProgress(`Проверяем разбор: ${m.hero}…`);
+      const job=await request('/request/'+m.jobId,0,signal,onProgress);
+      // A disappeared job alone is NOT evidence of successful parsing.
+      if(job && !['completed','failed'].includes(job.state) && !job.failedReason)continue;
+      await write('/matches/'+m.matchId,null,0);
+      const match=await request('/matches/'+m.matchId,2592000000,signal,onProgress,compactMatch);
+      if(match.version!=null){
+        await write('replay:'+m.matchId,{status:'complete'},86400000);
+        await write('report:'+VERSION+':'+report.accountId,null,0);completed++;
+      }else if(!job || job.state==='failed' || job.failedReason){
+        await write('replay:'+m.matchId,{status:'unavailable'},86400000);
+      }
+    }
+    return {completed,states:await scan.parsingStates(report)};
+  });
+  return scan;
 }

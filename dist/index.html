@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css?v=20261018-background-1">
+  <link rel="stylesheet" href="./style.css?v=experience-2">
 </head>
 <body>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
@@ -23,7 +23,7 @@
       <div class="hero-content">
         <div class="eyebrow"><span class="eyebrow-line"></span> МАТЧ ЗАКОНЧИЛСЯ. РАЗБОР ТОЛЬКО НАЧИНАЕТСЯ.</div>
         <h1 id="hero-title">PLAYER<br><span>SCAN</span></h1>
-        <p class="intro">Попался скрытопульный тиммейт? Пробей его в PLAYER SCAN — узнай, он постоянно руинит или просто не задалась игра. Введи Steam ID и получи вердикт с разбором последних игр: что он делает, где ошибается и как помогает команде.</p>
+        <p class="intro">Попался скрытопульный тиммейт? Пробей его в PLAYER SCAN — узнай, он постоянно руинит или просто не задалась катка. Введи Steam ID и получи вердикт с разбором последних игр: что он делает, где ошибается и как помогает команде.</p>
 
         <form class="scan-form" id="scan-form" novalidate>
           <label class="sr-only" for="steam-id">Steam ID или ссылка на профиль</label>
@@ -31,6 +31,7 @@
           <input id="steam-id" name="steam-id" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Введи Steam ID или ссылку на профиль">
           <button type="submit"><span>SCAN</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h12M10 4.5l5.5 5.5-5.5 5.5"></path></svg></button>
         </form>
+        <section id="recent-searches" class="recent-searches" hidden aria-label="Последние запросы"><div class="recent-heading"><h2>Последние запросы</h2><button id="clear-history" type="button">Очистить</button></div><div id="recent-list"></div></section>
         <p class="form-hint" id="form-hint"><span class="hint-key">&#8629;</span> Вставь Steam ID или ссылку на профиль, чтобы начать</p>
         <p class="form-error" id="form-error" role="status" aria-live="polite"></p>
         <div class="privacy-note"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 13 3.4v3.8c0 3.2-2.1 5.7-5 7.3-2.9-1.6-5-4.1-5-7.3V3.4L8 1.5Z"></path><path d="m5.8 7.7 1.5 1.5 3-3"></path></svg> Без входа в аккаунт <span>&middot;</span> Только открытые данные матчей</div>
@@ -54,6 +55,6 @@
 
     <footer><span>PLAYER SCAN <span class="footer-sep">/</span> DOTA 2</span><span class="footer-note">Узнай, кто стоит за ником в твоём матче.</span></footer>
   </main>
-  <script type="module" src="./app.js?v=scan-1"></script>
+  <script type="module" src="./app.js?v=experience-2"></script>
 </body>
 </html>

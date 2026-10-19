@@ -57,3 +57,29 @@ test('profile 404 identifies the requested account and suggests checking all dig
   await assert.rejects(h.scan('092087567'),e=>e.status===404&&e.message.includes('92087567')&&e.message.includes('все цифры'));
   assert.equal(h.calls.length,1);
 });
+test('parsing submits at most three, weights quota and persists deduplication',async()=>{
+  const h=harness(url=>url.includes('/request/')?Response.json({job:{jobId:Number(url.split('/').pop())+9000}}):null);
+  const r={accountId:123,matches:Array.from({length:3},(_,i)=>({matchId:100+i,hero:'Test',parsed:false}))};
+  await h.scan.requestParsing(r);assert.equal(h.calls.length,3);
+  assert.ok(h.calls.every(c=>c.options.method==='POST'));
+  assert.ok(h.calls.slice(1).every((c,i)=>c.time-h.calls[i].time>=16000));
+  await h.scan.requestParsing(r);assert.equal(h.calls.length,3);
+  assert.equal(h.data.get('player-scan-v1:quota').value.count,30);
+});
+test('completed parsing requires parsed match and invalidates report',async()=>{
+  let done=false;const h=harness(url=>url.includes('/request/')?Response.json(done?null:{job:{jobId:9000}}):null);
+  const r={accountId:123,matches:[{matchId:100,hero:'Test',parsed:false}]};
+  await h.scan.requestParsing(r);done=true;
+  const result=await h.scan.checkParsing(r);assert.equal(result.completed,1);assert.equal(result.states[0].status,'complete');
+  assert.equal(h.data.get('player-scan-v1:report:1.0.0-beta:123').value,null);
+});
+test('disappeared job with unparsed replay is not reported as success',async()=>{
+  let done=false;const h=harness(url=>url.includes('/request/')?Response.json(done?null:{job:{jobId:9000}}):url.includes('/matches/')?Response.json({match_id:100,version:null,players:[]}):null);
+  const r={accountId:123,matches:[{matchId:100,hero:'Test',parsed:false}]};await h.scan.requestParsing(r);done=true;
+  const result=await h.scan.checkParsing(r);assert.equal(result.completed,0);assert.equal(result.states[0].status,'unavailable');
+});
+test('parsing 429 stops batch and respects cooldown on next attempt',async()=>{
+  const h=harness(()=>Response.json({error:'minute limit'},{status:429}));
+  const r={accountId:123,matches:[{matchId:100,parsed:false},{matchId:101,parsed:false}]};
+  await assert.rejects(h.scan.requestParsing(r));await assert.rejects(h.scan.requestParsing(r));assert.equal(h.calls.length,1);
+});

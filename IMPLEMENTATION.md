@@ -30,7 +30,11 @@ POST /api/scan starts/reuses an account job. GET /api/scan?id=ACCOUNT advances t
 
 5,000 new unique full scans/day can require approximately 110,000 source calls/day (20 matches + profile + history), before reuse. Purchase sufficient OpenDota capacity and adjust OPENDOTA_REQUESTS_PER_MINUTE and OPENDOTA_REQUESTS_PER_DAY only to the granted quota. Traffic bursts and parsing backlogs need staged production load tests and monitoring. 5,000 visitors is not 5,000 unique scans. This release is NOT certified for that many uncached daily scans.
 
-No automated bulk replay parsing is triggered. Detailed panels use existing parsed replay fields. Missing parsing is shown honestly with a link to OpenDota. A full replay pipeline with coordinates and independently labeled decision errors is future work.
+Replay parsing is user initiated from the report. Each click submits up to three unparsed matches via the documented POST /request/{match_id}. The application counts each POST as ten quota units and spaces subsequent work by 16 seconds, sharing the scanner's Web Lock and persisted quota. Job IDs and states survive reloads; duplicate submissions are suppressed for 24 hours. The readiness button checks jobs and verifies match.version before claiming success, invalidating the cached report after new parsed data arrives. A missing job without parsed match data is shown as unavailable, never successful. A full movement trace and independently labeled decision errors remain future work.
+
+## Interface update (2026-10-19)
+
+Provider names, provider links and cache implementation text are removed from the visitor interface. Internal provenance is retained in code. IMP is presented as a Russian contribution score with positive/negative interpretation. The loading screen has no fixed match-count promise. Last five distinct searches are stored per browser in localStorage, normalized across Steam/Dota ID formats, with optional nickname and a clear-history control. No shared public search history is created. 36 automated tests cover the combined implementation, including history and parsing transitions.
 
 ## Verification performed
 

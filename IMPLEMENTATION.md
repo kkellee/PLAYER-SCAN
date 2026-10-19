@@ -1,6 +1,6 @@
 # PLAYER SCAN — current implementation
 
-Frontend: GitHub Pages. Active free mode: browser directly calls the public OpenDota API with CORS, without keys or credentials. The Cloudflare Workers + D1 backend at https://player-scan.keen-krill-5922.chatgpt.site is retained for future server integration but is NOT used by the current report page.
+Frontend: GitHub Pages. Active free mode: browser directly calls the public OpenDota API with CORS, without keys or credentials. STRATZ enrichment uses the Cloudflare Workers + D1 backend at https://player-scan.keen-krill-5922.chatgpt.site/api/stratz. STRATZ_API_TOKEN is a runtime secret, never a client asset.
 
 ## Free browser mode
 
@@ -14,9 +14,17 @@ Paid keys must never be added to this browser module. A future paid configuratio
 
 Numeric Dota account IDs, SteamID64, SteamID2, SteamID3 and numeric Steam profile links. Latest 20 matches from OpenDota; cached match details; parsed replay fields when available; seven possible outcomes including insufficient evidence. Rank-matched comparisons and a full movement trace are NOT implemented. Hero benchmarks are labeled accordingly. Verdict thresholds are provisional, transparent heuristics, not a calibrated classifier or evidence of intentional griefing.
 
-Steam vanity URL resolution requires STEAM_API_KEY. STRATZ enrichment requires STRATZ_API_TOKEN; its optional GraphQL request has not been verified with a real token. Dotabuff is linked for independent inspection, not scraped. No report count or hidden matchmaking-pool information is claimed. No secrets belong in GitHub or client assets.
+Steam vanity URL resolution requires STEAM_API_KEY. STRATZ enrichment queries the exact OpenDota match IDs (maximum 20), filtered to the same player. It adds detected position/role/lane, IMP, minute IMP, deaths and ward events where available. Nulls remain unavailable, not zero. No complete movement trace or automatic tactical-error attribution is claimed. Dotabuff is linked for independent inspection, not scraped: no documented public API access was established. Its data is explicitly excluded from the verdict.
 
-## Retained server implementation (not active in free mode)
+## STRATZ enrichment
+
+One fixed server GraphQL query, not a user-supplied proxy. Official API headers include User-Agent STRATZ_API. Shared D1 cache lasts 30 minutes, keyed by account and sorted match IDs. D1 leases prevent duplicate simultaneous upstream work; clients retry a busy lease at most twice. Application caps: 15/sec, 200/minute, 1,800/hour, 8,000/day; 10 uncached requests/minute per hashed client IP. These are conservative app settings, not a throughput guarantee. Upstream 429 creates a shared cooldown. Key stays in Sites secrets. No paid plan enabled.
+
+Comparison uses the same eligible games and hero IDs, minimum ten with both OpenDota score and STRATZ IMP. Opposite signals (OpenDota mean below 43 with at least 60% positive IMP, or mean at least 58 with at least 60% negative IMP) produce Mixed picture. Otherwise the base verdict remains, with explicit corroboration or inconclusive wording. These provisional rules are disclosed; scales are not averaged and repeated basic stats are not counted twice. Provider failure leaves the OpenDota report intact.
+
+Tests: 28 unit tests cover existing analysis and browser behavior plus provider validation, matching coverage, null/zero IMP, disagreement, retries, fallback and secret-free client requests. Production capacity for 5,000 uncached daily scans is not certified.
+
+## Retained OpenDota server implementation (not active in free mode)
 
 POST /api/scan starts/reuses an account job. GET /api/scan?id=ACCOUNT advances two match fetches under a D1 lease. Concurrent requests share the job. Jobs resume when polled; there is no continuously running background consumer. Raw compact matches are shared across profiles for 24 hours; reports last 30 minutes (5 minutes with partial errors). This limits duplicate upstream work. API requests have a 12-second timeout. Provider quota counters are atomic in D1. Default admission is 40 upstream calls/minute and 2,000/day; these are conservative application caps, not a statement of provider entitlement. Cached report requests remain available after the upstream cap.
 

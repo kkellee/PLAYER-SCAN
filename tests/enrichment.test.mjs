@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {combineReport,enrichReport} from '../dist/enrichment.mjs';
+import {validateRequest,normalize,QUERY} from '../backend/lib/stratz.mjs';
+const base=(score=25)=>({accountId:123,version:'test',verdict:'НЕ В ФОРМЕ',tone:'warn',description:'Исходный вывод.',matches:Array.from({length:20},(_,i)=>({matchId:i+1,heroId:1,score}))});
+const data=(imp=10)=>({accountId:123,generatedAt:new Date().toISOString(),matches:Array.from({length:20},(_,i)=>({matchId:i+1,heroId:1,imp}))});
+test('opposed signals change verdict without averaging score scales',()=>{const r=combineReport(base(),data());assert.equal(r.verdict,'СМЕШАННАЯ КАРТИНА');assert.equal(r.sourceComparison.count,20);});
+test('null IMP remains missing, not zero',()=>{const r=combineReport(base(),data(null));assert.equal(r.sourceComparison.mean,null);assert.equal(r.sourceComparison.count,0);assert.equal(r.verdict,'НЕ В ФОРМЕ');});
+test('zero IMP is actual data',()=>{const r=combineReport(base(),data(0));assert.equal(r.sourceComparison.mean,0);assert.equal(r.sourceComparison.count,20);});
+test('insufficient paired coverage preserves base verdict',()=>{const d=data();d.matches=d.matches.slice(0,9);assert.equal(combineReport(base(),d).verdict,'НЕ В ФОРМЕ');});
+test('matching hero and eligible match required',()=>{const b=base();b.matches[0].heroId=2;b.matches[1].score=null;assert.equal(combineReport(b,data()).sourceComparison.count,18);});
+test('wrong player response rejected',()=>assert.throws(()=>combineReport(base(),{...data(),accountId:5})));
+test('failure preserves OpenDota and shows source state',async()=>{const r=await enrichReport(base(),{fetcher:async()=>new Response('{}',{status:429})});assert.equal(r.verdict,'НЕ В ФОРМЕ');assert.equal(r.stratz.status,'unavailable');});
+test('server lease retry is bounded',async()=>{let calls=0;await enrichReport(base(),{fetcher:async()=>{calls++;return new Response('{}',{status:409});},sleep:async()=>{}});assert.equal(calls,3);});
+test('fixed request carries IDs and no token',async()=>{await enrichReport(base(),{fetcher:async(url,init)=>{assert.equal(init.headers.Authorization,undefined);assert.equal(JSON.parse(init.body).matchIds.length,20);return Response.json(data());}});});
+test('request validates bounds, rejects arbitrary GraphQL input',()=>{assert.deepEqual(validateRequest({accountId:123,matchIds:[2,1,2]}),{id:123,ids:[1,2]});for(const bad of [{accountId:0,matchIds:[1]},{accountId:123,matchIds:[]},{accountId:123,matchIds:Array(21).fill(1)},{accountId:123,matchIds:['1']},{query:'anything'}])assert.throws(()=>validateRequest(bad));assert.ok(QUERY.includes('matchIds: $ids'));});
+test('normalization filters other matches and players, preserves missing events',()=>{const r=normalize({data:{player:{steamAccountId:123,matches:[{id:1,players:[{steamAccountId:123,heroId:2,imp:0}]},{id:2,players:[{steamAccountId:999,imp:10}]}]}}},123,[1,2]);assert.equal(r.matches.length,1);assert.equal(r.matches[0].imp,0);assert.equal(r.matches[0].deaths,null);});
+test('GraphQL partial error is not silently accepted',()=>assert.throws(()=>normalize({errors:[{message:'no'}]},123,[1])));

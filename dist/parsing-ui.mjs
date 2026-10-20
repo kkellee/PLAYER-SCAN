@@ -1,16 +1,25 @@
 import {openReplay} from './replay-view.mjs?v=roles-1';
+import {heroPortrait,clock} from './replay-visuals.mjs?v=roles-1';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function replayCardHTML(state,match){
+  const ready=!!(match?.parsed||match?.stratz?.parsedAt);
+  const labels={queued:'В очереди',complete:'Обнови отчёт',unavailable:'Разбор недоступен'};
+  const status=ready?'Разбор готов':labels[state.status]||'Ожидает разбора';
+  const date=Number.isFinite(match?.startTime)?new Date(match.startTime*1000).toLocaleDateString('ru-RU'):'';
+  return `<div class="replay-card-art">${heroPortrait(match?.heroId)||'<span class="replay-art-fallback">?</span>'}<span class="replay-card-status ${ready?'ready':''}">${esc(status)}</span></div><div class="replay-card-info"><strong>${esc(match?.hero||state.hero)}</strong><small>${esc(date)}${date&&Number.isFinite(match?.duration)?' · ':''}${Number.isFinite(match?.duration)?clock(match.duration):''}</small><small class="replay-card-id">Матч ${esc(state.matchId)}</small></div>`;
+}
 export const parsePanelHTML=()=>`<div class="parse-panel"><h2>Разборы реплеев</h2><p>Готовые разборы открываются кнопкой рядом с матчем: краткие итоги, позиции на линии, покупки и события драк. Чтобы получить больше, отправь до трёх следующих игр на разбор. Старые реплеи могут быть недоступны.</p><div class="actions"><button id="parse-request">Запросить разбор</button><button id="parse-check" disabled>Проверить готовность</button></div><p id="parse-status" role="status" aria-live="polite"></p><ul id="parse-list"></ul></div>`;
 export function mountParsing(scanner,report,{refresh,signal}){
   const request=document.querySelector('#parse-request'),check=document.querySelector('#parse-check'),status=document.querySelector('#parse-status'),list=document.querySelector('#parse-list');
   let busy=false;
-  const labels={queued:'В очереди на разбор',complete:'Разбор готов',unavailable:'Реплей недоступен или разбор не завершился'};
   async function update(){
     const states=await scanner.parsingStates(report);list.replaceChildren();
     for(const s of states){
       const m=report.matches.find(m=>m.matchId===s.matchId),ready=!!(m?.parsed||m?.stratz?.parsedAt);
       if(!ready&&!s.status)continue;
-      const li=document.createElement('li'),text=document.createElement('span');
-      text.textContent=`${s.hero} · ${s.matchId}: ${ready?'Разбор доступен':s.status==='complete'?'Нужно обновить данные':labels[s.status]}`;li.append(text);
+      const li=document.createElement('li');li.className='replay-card';
+      li.innerHTML=replayCardHTML(s,m);
+      const portrait=li.querySelector('img');if(portrait)portrait.addEventListener('error',()=>{portrait.hidden=true;li.querySelector('.replay-card-art').classList.add('art-unavailable');});
       if(ready){const button=document.createElement('button');button.type='button';button.textContent='Открыть разбор';button.setAttribute('aria-label',`Открыть разбор ${s.hero}, матч ${s.matchId}`);button.onclick=()=>openReplay(s.matchId);li.append(button);}
       else if(s.status==='complete'){const button=document.createElement('button');button.textContent='Обновить отчёт';button.onclick=refresh;li.append(button);}
       list.append(li);

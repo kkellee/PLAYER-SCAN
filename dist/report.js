@@ -3,7 +3,7 @@ import {detailedReplayHTML,mountReplayDetails} from './replay-details.mjs?v=role
 import {heroPortrait,purchasesHTML,laneMapHTML,fightsHTML,economyHTML,mountReplayVisuals} from './replay-visuals.mjs?v=roles-1';
 import {replayFacts} from './replay-view.mjs?v=roles-1';
 import {rememberSearch} from './history.mjs';
-import {mountParsing,parsePanelHTML} from './parsing-ui.mjs?v=roles-1';
+import {mountParsing,parsePanelHTML} from './parsing-ui.mjs?v=cards-1';
 import { createBrowserScanner } from './browser-scan.mjs?v=roles-1';
 import { enrichReport } from './enrichment.mjs?v=sources-1';
 const scanPlayer = createBrowserScanner();

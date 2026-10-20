@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {assessMatch,reassessReport,resolveRole} from '../dist/role-analysis.mjs';
+const keys=['gold_per_min','xp_per_min','hero_damage_per_min','tower_damage','assists_per_min'];
+const match=(v=50,role=1)=>({mode:22,duration:1800,player:{position_est:role},metrics:keys.map(key=>({key,label:key,percentile:v,value:100})),win:true});
+const report=matches=>reassessReport({matches,coverage:{},version:'old'});
+test('role comes from position, never from hero alone',()=>{assert.equal(resolveRole({...match(),stratz:{position:'POSITION_5'}}).key,'5');assert.equal(resolveRole({player:{hero_id:5,lane_role:1}}).key,'unknown');assert.equal(resolveRole({player:{lane_role:2}}).key,'2');});
+test('support farm is not penalized like carry farm',()=>{const m=match(65);m.metrics.filter(x=>['gold_per_min','tower_damage'].includes(x.key)).forEach(x=>x.percentile=0);assert.ok(assessMatch({...m,player:{position_est:5}}).score>assessMatch(m).score+20);});
+test('strong overall performance is not overridden by variance',()=>{assert.equal(report(Array.from({length:20},(_,i)=>match(i<5?20:85))).verdict,'НАДЁЖНЫЙ ТИММЕЙТ');});
+test('instability requires mixed outcomes on the same known role',()=>{const ms=Array.from({length:20},(_,i)=>match(i%2?80:20));assert.equal(report(ms).verdict,'НЕСТАБИЛЬНЫЙ');assert.equal(report(ms.map(m=>({...m,player:{}}))).verdict,'В ПРЕДЕЛАХ НОРМЫ');assert.equal(report(ms.map((m,i)=>({...m,player:{position_est:i%2?1:2}}))).verdict,'В ПРЕДЕЛАХ НОРМЫ');});
+test('all main outcome bands remain available',()=>{for(const [v,label] of [[20,'СКРЫТОПУЛЬНЫЙ'],[40,'НЕ В ФОРМЕ'],[50,'В ПРЕДЕЛАХ НОРМЫ'],[65,'НАДЁЖНЫЙ ТИММЕЙТ'],[80,'ТАЩИТ']])assert.equal(report(Array.from({length:20},()=>match(v))).verdict,label);});
+test('unknown and missing data remain explicit; turbo excluded',()=>{assert.equal(assessMatch({...match(),mode:23}).score,null);assert.equal(assessMatch({...match(),metrics:[]}).score,null);assert.equal(report([match()]).score,null);assert.equal(report([match()]).verdict,'НЕДОСТАТОЧНО ДАННЫХ');});
+test('each game has conclusion and evidence independent of win',()=>{const m=assessMatch({...match(20),win:true});assert.equal(m.assessment.title,'Очень слабая игра');assert.equal(m.assessment.reasons.length,2);assert.match(m.assessment.context,/победила/);});
+test('cached old report is rescored deterministically',()=>{const r=report(Array.from({length:20},()=>match(80)));assert.deepEqual(reassessReport(r),r);assert.equal(r.version,'2.0-role');});

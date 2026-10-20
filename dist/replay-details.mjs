@@ -1,6 +1,6 @@
 import {items,heroes} from './dota-assets.mjs';
 import {abilities} from './dota-abilities.mjs';
-import {clock,heroPortrait,graphHTML,mapVersion} from './replay-visuals.mjs?v=detail-2';
+import {clock,heroPortrait,graphHTML,mapVersion} from './replay-visuals.mjs?v=roles-1';
 const CDN='https://cdn.cloudflare.steamstatic.com';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const n=(v,d=0)=>Number.isFinite(v)?v.toLocaleString('ru-RU',{maximumFractionDigits:d}):'—';
@@ -31,7 +31,7 @@ export function combatHTML(m){
   const abilitiesOnly=uses?Object.fromEntries(Object.entries(uses).filter(([key])=>!utilityNames[key])):null;
   const other=uses?Object.fromEntries(Object.entries(uses).filter(([key])=>utilityNames[key])):null;
   return `<div class="detail-stats">
-  ${stat('Урон героям',n(p.hero_damage),'За всю катку',heroes[m.heroId])}
+  ${stat('Урон героям',n(p.hero_damage),'За всю игру',heroes[m.heroId])}
   ${stat('Урон строениям',n(p.tower_damage),'Давление на объекты')}
   ${stat('Лечение героев',n(p.hero_healing),'Учтённое лечение союзных героев')}
   ${stat('Оглушения',n(p.stuns,1)+' сек.','Суммарная длительность контроля')}
@@ -59,7 +59,7 @@ export function visionHTML(m){
   ${stat('Сентри поставлены',n(p.sen_placed),'Количество установок',items.ward_sentry)}
   ${stat('Стаки лагерей',n(p.camps_stacked),'Зафиксированные стаки')}
   ${stat('Крипы в стаках',n(p.creeps_stacked),'Учтённое число крипов')}
-  </div><div class="ward-explorer"><div class="ward-filters"><label><input type="checkbox" data-ward-filter="observer" checked> Обсерверы</label><label><input type="checkbox" data-ward-filter="sentry" checked> Сентри</label></div><div class="ward-layout">${map}<div><h4>Когда и где ставил варды</h4><p class="muted">Нажми на установку, чтобы выделить её на карте. Это места установки за всю катку; варды не обязательно стояли одновременно.</p><ol class="ward-list">${events.map(w=>`<li data-kind="${w.kind}"><button type="button" data-ward-select="${w.index}" ${wardPointValid(w)?'':'disabled'} aria-pressed="false" aria-label="${wardName(w.kind)}, установка ${w.index}, ${clock(w.time)}">${icon(items[w.kind==='observer'?'ward_observer':'ward_sentry'])}<span><b>${w.index}. ${wardName(w.kind)}</b><small>${clock(w.time)}${wardPointValid(w)?'':' · без координат'}</small></span></button></li>`).join('')||'<li class="muted">Список установок пока недоступен.</li>'}</ol><output class="ward-selection" aria-live="polite">Выбери установку из списка.</output></div></div></div>
+  </div><div class="ward-explorer"><div class="ward-filters"><label><input type="checkbox" data-ward-filter="observer" checked> Обсерверы</label><label><input type="checkbox" data-ward-filter="sentry" checked> Сентри</label></div><div class="ward-layout">${map}<div><h4>Когда и где ставил варды</h4><p class="muted">Нажми на установку, чтобы выделить её на карте. Это места установки за всю игру; варды не обязательно стояли одновременно.</p><ol class="ward-list">${events.map(w=>`<li data-kind="${w.kind}"><button type="button" data-ward-select="${w.index}" ${wardPointValid(w)?'':'disabled'} aria-pressed="false" aria-label="${wardName(w.kind)}, установка ${w.index}, ${clock(w.time)}">${icon(items[w.kind==='observer'?'ward_observer':'ward_sentry'])}<span><b>${w.index}. ${wardName(w.kind)}</b><small>${clock(w.time)}${wardPointValid(w)?'':' · без координат'}</small></span></button></li>`).join('')||'<li class="muted">Список установок пока недоступен.</li>'}</ol><output class="ward-selection" aria-live="polite">Выбери установку из списка.</output></div></div></div>
   <p class="muted">Карта не оценивает качество обзора, обнаруженных врагов или время жизни варда: для этого нужны дополнительные события.</p>`;
 }
 export function farmHTML(m){
@@ -77,8 +77,8 @@ export function timelineEvents(m){
 }
 export function eventsHTML(m){
   const p=m.player||{},events=timelineEvents(m);
-  return `<div class="detail-stats">${stat('Убийства',n(p.kills),'За всю катку',heroes[m.heroId])}${stat('Смерти',n(p.deaths),'За всю катку')}${stat('Ассисты',n(p.assists),'Помощь в убийствах')}${stat('Время мёртвым',Number.isFinite(p.life_state_dead)?clock(p.life_state_dead):'—','Суммарно за катку')}</div>
-  <ol class="combat-timeline">${events.map(e=>`<li class="timeline-${e.kind}"><time>${clock(e.time)}</time>${e.hero?icon(e.hero):e.art?`<img class="rune-icon" src="${esc(e.art)}" alt="" loading="lazy">`:`<span class="event-symbol" aria-hidden="true">${e.kind==='death'?'×':'↻'}</span>`}<div><b>${esc(e.title)}</b>${e.detail?`<small>${esc(e.detail)}</small>`:''}</div></li>`).join('')||'<li class="muted">Точные события пока недоступны.</li>'}</ol><p class="muted">Показаны только события с известным временем. Список может быть неполным; итоговые счётчики выше относятся ко всей катке.</p>`;
+  return `<div class="detail-stats">${stat('Убийства',n(p.kills),'За всю игру',heroes[m.heroId])}${stat('Смерти',n(p.deaths),'За всю игру')}${stat('Ассисты',n(p.assists),'Помощь в убийствах')}${stat('Время мёртвым',Number.isFinite(p.life_state_dead)?clock(p.life_state_dead):'—','Суммарно за игру')}</div>
+  <ol class="combat-timeline">${events.map(e=>`<li class="timeline-${e.kind}"><time>${clock(e.time)}</time>${e.hero?icon(e.hero):e.art?`<img class="rune-icon" src="${esc(e.art)}" alt="" loading="lazy">`:`<span class="event-symbol" aria-hidden="true">${e.kind==='death'?'×':'↻'}</span>`}<div><b>${esc(e.title)}</b>${e.detail?`<small>${esc(e.detail)}</small>`:''}</div></li>`).join('')||'<li class="muted">Точные события пока недоступны.</li>'}</ol><p class="muted">Показаны только события с известным временем. Список может быть неполным; итоговые счётчики выше относятся ко всей игре.</p>`;
 }
 export function detailedReplayHTML(m){
   return `<details open class="detail-section"><summary>Способности, предметы и урон</summary>${combatHTML(m)}</details>

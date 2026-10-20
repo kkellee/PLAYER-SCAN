@@ -17,7 +17,7 @@ export function replayFacts(m){
   const events=m.events||[];
   if(events.length){const e=events[0];const t=`${Math.floor(e.time/60)}:${String(Math.floor(e.time%60)).padStart(2,'0')}`;facts.push(`Эпизод для проверки — ${t}: ${e.title.toLowerCase()}. ${e.text}`);}
   if(Array.isArray(p.purchase_log))facts.push(`Получены тайминги ${p.purchase_log.length} покупок. Их можно сопоставить с событиями драк на карточках ниже.`);
-  if(p.lane_pos&&Object.keys(p.lane_pos).length)facts.push('Карта показывает, где игрок находился на стадии линии. Это частота присутствия, а не полный маршрут за всю катку.');
+  if(p.lane_pos&&Object.keys(p.lane_pos).length)facts.push('Карта показывает, где игрок находился на стадии линии. Это частота присутствия, а не полный маршрут за всю игру.');
   if(!facts.length)facts.push('Реплей отмечен как обработанный, но подробных событий для этого игрока пока недостаточно. Недостающие показатели не считаются ошибками.');
   return facts;
 }

@@ -1,4 +1,4 @@
-import {openReplay} from './replay-view.mjs';
+import {openReplay} from './replay-view.mjs?v=roles-1';
 export const parsePanelHTML=()=>`<div class="parse-panel"><h2>Разборы реплеев</h2><p>Готовые разборы открываются кнопкой рядом с матчем: краткие итоги, позиции на линии, покупки и события драк. Чтобы получить больше, отправь до трёх следующих игр на разбор. Старые реплеи могут быть недоступны.</p><div class="actions"><button id="parse-request">Запросить разбор</button><button id="parse-check" disabled>Проверить готовность</button></div><p id="parse-status" role="status" aria-live="polite"></p><ul id="parse-list"></ul></div>`;
 export function mountParsing(scanner,report,{refresh,signal}){
   const request=document.querySelector('#parse-request'),check=document.querySelector('#parse-check'),status=document.querySelector('#parse-status'),list=document.querySelector('#parse-list');

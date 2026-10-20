@@ -3,3 +3,42 @@
 .parse-panel{border-top:1px solid #344052;margin-top:20px;padding-top:22px}.parse-panel p{font-size:14px}.parse-panel li{font-size:13px}.parse-panel button+button{background:#29384a}
 
 #parse-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid #293747}#parse-list{padding-left:0;list-style:none}#parse-list button{padding:9px 12px;font-size:12px}.match{scroll-margin-top:24px}.replay-summary{padding:16px;background:#18212b;border-left:3px solid #d4aa68;border-radius:6px;margin:12px 0}.replay-summary li{font-size:14px}
+
+/* Replay visuals: game artwork, real observations, accessible timelines. */
+.hero-portrait{width:64px;height:36px;object-fit:cover;border:1px solid #51514a;border-radius:3px;flex-shrink:0}
+.match-body>details{border-top:1px solid #33404b;padding-top:12px;margin-top:28px}
+.match-body>details>summary{font-size:18px;font-weight:700;letter-spacing:.02em;margin-bottom:15px}
+.match-body>details>summary::before{content:"▸";color:#d9b874}.match-body>details[open]>summary::before{content:"▾"}
+.match-body h4{margin:16px 0;font-size:14px}.match-body .muted{font-size:13px}
+.inventory{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+.inventory>div{width:104px;background:#080e13;border:1px solid #36414a;padding:6px;border-radius:5px}
+.inventory img{display:block;width:100%;aspect-ratio:88/64;object-fit:contain}
+.inventory span{display:block;font-size:11px;padding-top:5px;text-align:center;line-height:1.4}
+.purchase-timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 18px;list-style:none;padding:0}
+.purchase-timeline li{display:flex;gap:12px;align-items:center;margin:0;padding:10px 0;border-bottom:1px solid #273441;min-width:0}
+.purchase-timeline time{font-variant-numeric:tabular-nums;color:#d1b377;font-size:12px;min-width:42px}
+.purchase-item{display:flex;align-items:center;gap:10px;min-width:0}.purchase-item img{width:48px;height:35px;object-fit:contain;border:1px solid #414548;border-radius:3px;background:#0a1018}
+.purchase-item strong{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.lane-layout{display:grid;grid-template-columns:minmax(260px,440px) minmax(200px,1fr);gap:30px;align-items:center}
+.dota-map{position:relative;margin:0;border:1px solid #56645c;border-radius:8px;overflow:hidden;background:#101b19}
+.dota-map svg{display:block;width:100%;height:auto;aspect-ratio:1}
+.map-side{position:absolute;font-size:9px;letter-spacing:.16em;padding:7px;background:#090f16d9}.map-side.radiant{bottom:0;left:0;color:#8bd9ae}.map-side.dire{top:0;right:0;color:#f29b8f}
+.map-guide .hero-portrait{width:104px;height:auto}.map-guide p{max-width:380px}.map-guide small{font-size:11px;line-height:1.6;display:block}
+.heat-legend{display:flex;align-items:center;gap:12px;font-size:11px;max-width:260px;margin:20px 0}.heat-legend i{height:6px;flex:1;background:linear-gradient(90deg,#573b21,#ffb745,#fff1b2);border-radius:4px}
+.fight-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fight-card{padding:16px;border:1px solid #34434c;border-top:2px solid #6b9b81;border-radius:7px;background:linear-gradient(150deg,#18232b,#0c131b)}
+.fight-card.fight-death{border-top-color:#c66c5d}.fight-card header{display:flex;gap:10px;align-items:center}.fight-card header b{font-size:13px}.fight-card header small{display:block;font-size:11px;margin-top:4px}.fight-card .hero-portrait{width:42px;height:26px;margin-left:auto}
+.fight-number{font-size:23px;color:#64737c;font-weight:bold}.fight-state{font-size:11px;color:#b1bdc6;margin:15px 0}
+.damage-label{display:flex;justify-content:space-between;font-size:12px;gap:5px}.fight-damage{height:6px;border-radius:3px;background:#263540;margin:10px 0 16px}.fight-damage i{display:block;height:100%;background:linear-gradient(90deg,#b88548,#efc37e);border-radius:3px}
+.fight-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.fight-stats small{display:block;font-size:10px}.fight-stats strong{display:block;font-size:17px;margin-top:5px}
+.dota-graph{background:#0a1114;border:1px solid #354347;border-radius:8px;padding:18px 14px;margin:14px 0 22px}
+.dota-graph header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:0 8px}.dota-graph h4{margin:0}
+.graph-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:#c5cdd2}.graph-legend span{display:flex;align-items:center;gap:7px}.graph-legend i{width:17px;height:3px;display:inline-block}
+.dota-graph svg{display:block;width:100%;height:auto;min-height:160px;touch-action:pan-y;cursor:crosshair}
+.dota-graph svg text{fill:#a9b4bc;font-size:11px;font-family:Arial,sans-serif}.graph-grid{stroke:#667c81;stroke-opacity:.2;stroke-width:1}
+.team-labels{display:flex;justify-content:space-between;font-size:10px;padding:14px 8px 0;letter-spacing:.09em}
+.graph-control{display:flex;align-items:center;gap:16px;font-size:12px;color:#b1bdc6;padding:0 8px}.graph-control input{width:100%;min-width:50px;accent-color:#d6b775;cursor:ew-resize}
+.dota-graph output{display:block;min-height:24px;padding:15px 8px 4px;font-size:13px;color:#f0d798;font-variant-numeric:tabular-nums}
+.dota-graph>small{display:block;padding:5px 8px;font-size:11px;line-height:1.5}
+@media(max-width:1000px){.fight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.purchase-timeline{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.lane-layout{grid-template-columns:1fr;gap:16px}.fight-grid,.purchase-timeline{grid-template-columns:1fr}.dota-graph{padding:14px 4px}.graph-legend{font-size:10px;gap:10px}.match-body{padding:0 12px 16px}.match summary .hero-portrait{width:48px;height:28px}.match-head{min-width:100px}.dota-graph svg{min-height:0}.graph-control{flex-wrap:wrap;gap:8px}.graph-control input{width:100%}.fight-card{padding:14px}}

@@ -19,7 +19,7 @@ export function purchasesHTML(p){
 export function mapPoints(pos){
   return Object.entries(pos||{}).flatMap(([x,ys])=>Object.entries(ys||{}).map(([y,v])=>({x:Number(x)-64,y:191-Number(y),v:Number(v)}))).filter(p=>[p.x,p.y,p.v].every(Number.isFinite)&&p.v>0&&p.x>=0&&p.x<=127&&p.y>=0&&p.y<=127);
 }
-function mapVersion(patch){
+export function mapVersion(patch){
   if(patch>=59)return '740';
   if(patch>=57)return '738';
   if(patch>=52)return '733';
@@ -50,7 +50,7 @@ export function chartModel(series,times){
   const power=10**Math.floor(Math.log10(rough)),step=([1,2,5,10].find(n=>n*power>=rough)||10)*power;
   return {count,times:ts,lo:Math.floor(lo/step)*step,hi:Math.ceil(hi/step)*step,step,maxTime:Math.max(60,...ts),valid:valid.length};
 }
-export function graphHTML(series,{title,times,teams=false}={}){
+export function graphHTML(series,{title,times,teams=false,note}={}){
   series=series.filter(s=>s.values?.some(Number.isFinite));
   const model=chartModel(series,times);if(!model.valid)return `<p class="muted">${esc(title)}: график пока недоступен.</p>`;
   const {lo,hi,maxTime}=model,x=t=>70+t/maxTime*780,y=v=>276-(v-lo)/(hi-lo)*242;
@@ -61,7 +61,7 @@ export function graphHTML(series,{title,times,teams=false}={}){
   const ticks=tickTimes.map(t=>`<line x1="${x(t)}" y1="34" x2="${x(t)}" y2="276" class="graph-grid"/><text x="${x(t)}" y="302" text-anchor="middle">${clock(t)}</text>`).join('');
   const paths=series.map(s=>{let connected=false;const d=s.values.map((v,i)=>{if(!Number.isFinite(v)){connected=false;return '';}const part=`${connected?'L':'M'}${x(model.times[i])},${y(v)}`;connected=true;return part;}).join(' ');return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.5" vector-effect="non-scaling-stroke"/>`;}).join('');
   const payload=esc(JSON.stringify({series,times:model.times}));
-  return `<section class="dota-graph" data-graph="${payload}"><header><h4>${esc(title)}</h4><div class="graph-legend">${series.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div></header>${teams?'<div class="team-labels"><span class="win">↑ Силы Света</span><span class="loss">↓ Силы Тьмы</span></div>':''}<svg viewBox="0 0 880 320" role="img" aria-label="${esc(title)}"><rect x="70" y="34" width="780" height="${Math.max(0,y(0)-34)}" fill="${teams?'#173428':'#18232d'}" opacity=".35"/>${teams?`<rect x="70" y="${y(0)}" width="780" height="${276-y(0)}" fill="#442121" opacity=".25"/>`:''}${grid}${ticks}<line x1="70" y1="${y(0)}" x2="850" y2="${y(0)}" stroke="#9aa7ab" stroke-opacity=".65"/>${paths}<line class="graph-cursor" x1="850" x2="850" y1="34" y2="276" stroke="#fff" stroke-dasharray="4 4" stroke-opacity=".7"/></svg><label class="graph-control">Момент катки <input type="range" min="0" max="${model.count-1}" value="${model.count-1}" aria-label="${esc(title)}: выбрать минуту"></label><output aria-live="polite"></output>${teams?'<small>Выше нуля — преимущество Света, ниже — Тьмы. Показана разница между командами.</small>':'<small>Заработанное золото — весь полученный доход, включая уже потраченный. Это не стоимость инвентаря.</small>'}</section>`;
+  return `<section class="dota-graph" data-graph="${payload}"><header><h4>${esc(title)}</h4><div class="graph-legend">${series.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.name)}</span>`).join('')}</div></header>${teams?'<div class="team-labels"><span class="win">↑ Силы Света</span><span class="loss">↓ Силы Тьмы</span></div>':''}<svg viewBox="0 0 880 320" role="img" aria-label="${esc(title)}"><rect x="70" y="34" width="780" height="${Math.max(0,y(0)-34)}" fill="${teams?'#173428':'#18232d'}" opacity=".35"/>${teams?`<rect x="70" y="${y(0)}" width="780" height="${276-y(0)}" fill="#442121" opacity=".25"/>`:''}${grid}${ticks}<line x1="70" y1="${y(0)}" x2="850" y2="${y(0)}" stroke="#9aa7ab" stroke-opacity=".65"/>${paths}<line class="graph-cursor" x1="850" x2="850" y1="34" y2="276" stroke="#fff" stroke-dasharray="4 4" stroke-opacity=".7"/></svg><label class="graph-control">Момент катки <input type="range" min="0" max="${model.count-1}" value="${model.count-1}" aria-label="${esc(title)}: выбрать минуту"></label><output aria-live="polite"></output>${note?`<small>${esc(note)}</small>`:teams?'<small>Выше нуля — преимущество Света, ниже — Тьмы. Показана разница между командами.</small>':'<small>Заработанное золото — весь полученный доход, включая уже потраченный. Это не стоимость инвентаря.</small>'}</section>`;
 }
 export function economyHTML(m){
   const p=m.player||{};

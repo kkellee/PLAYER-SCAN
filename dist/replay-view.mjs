@@ -3,7 +3,7 @@ export function openReplay(matchId,doc=document){
   card.open=true;
   for(const section of card.querySelectorAll('details')){
     const title=section.querySelector('summary')?.textContent||'';
-    if(/Экономика|Позиции на линии|Покупки|Командные драки|Смерти и обзор/.test(title))section.open=true;
+    if(/Экономика|Позиции на линии|Покупки|Командные драки|Смерти и обзор|Способности, предметы|Обзор и помощь/.test(title))section.open=true;
   }
   card.querySelector('summary')?.focus({preventScroll:true});
   card.scrollIntoView({behavior:'auto',block:'start'});return true;

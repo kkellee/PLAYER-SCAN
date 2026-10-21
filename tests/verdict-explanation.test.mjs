@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {hasContribution,verdictExplanationHTML} from '../dist/verdict-explanation.mjs';
+test('contribution is visible only with finite mean and observations',()=>{assert.equal(hasContribution({}),false);assert.equal(hasContribution({sourceComparison:{mean:null,count:2}}),false);assert.equal(hasContribution({sourceComparison:{mean:0,count:2}}),true);assert.equal(hasContribution({sourceComparison:{mean:4,count:0}}),false);});
+test('explanation separates outcomes and escapes player name',()=>{const html=verdictExplanationHTML({profile:{personaname:'<img>'},verdict:'НОРМА',score:50,matches:[{score:70,win:true,player:{kills:4,deaths:2,assists:9,gold_per_min:500}},{score:30,win:false,player:{kills:2,deaths:8,assists:3,gold_per_min:300}}],roleSummary:[],comparisons:[]});assert.match(html,/Победы: 1/);assert.match(html,/Поражения: 1/);assert.match(html,/&lt;img&gt;/);assert.match(html,/500/);assert.match(html,/300/);assert.doesNotMatch(html,/NaN|undefined/);});
+test('missing data never becomes invented average',()=>{const html=verdictExplanationHTML({matches:[],roleSummary:[],comparisons:[]});assert.match(html,/оценённых игр с таким исходом нет/);assert.doesNotMatch(html,/NaN|undefined/);});

@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {rankBadgeHTML} from '../dist/rank-badge.mjs';
+import {openReplay} from '../dist/replay-view.mjs';
+test('rank badge shows actual medal and unknown fallback',()=>{assert.match(rankBadgeHTML(65),/Властелин 5/);assert.match(rankBadgeHTML(80),/Титан/);assert.match(rankBadgeHTML(null),/Ранг неизвестен/);});
+test('opening replay reveals only selected game',()=>{const a={hidden:true,open:false,querySelectorAll:()=>[],querySelector:()=>null,scrollIntoView(){}},b={hidden:false,open:true};const viewer={hidden:true,querySelectorAll:()=>[a,b]};const doc={getElementById:id=>id==='replay-viewer'?viewer:id==='match-1'?a:null};assert.equal(openReplay(1,doc),true);assert.equal(viewer.hidden,false);assert.equal(a.hidden,false);assert.equal(a.open,true);assert.equal(b.hidden,true);assert.equal(b.open,false);});
+test('no duplicate games list or footer, all report games get cards',()=>{const r=fs.readFileSync(new URL('../dist/report.js',import.meta.url),'utf8');assert.doesNotMatch(r,/<h2>Последние игры|<h2>Как понимать результат/);const p=fs.readFileSync(new URL('../dist/parsing-ui.mjs',import.meta.url),'utf8');assert.match(p,/for\(const m of report.matches\)/);assert.doesNotMatch(p,/if\(!ready&&!s.status\)continue/);});

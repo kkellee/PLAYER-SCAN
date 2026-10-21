@@ -1,5 +1,8 @@
 export function openReplay(matchId,doc=document){
   const card=doc.getElementById('match-'+matchId);if(!card)return false;
+  const viewer=doc.getElementById('replay-viewer');
+  if(viewer){viewer.hidden=false;for(const other of viewer.querySelectorAll('.match')){other.hidden=other!==card;if(other!==card)other.open=false;}}
+  card.hidden=false;
   card.open=true;
   for(const section of card.querySelectorAll('details')){
     const title=section.querySelector('summary')?.textContent||'';

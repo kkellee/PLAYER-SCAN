@@ -1,4 +1,4 @@
-import { accountInput, compactMatch, playerMatch, buildReport, VERSION } from './analysis.mjs';
+import { accountInput, compactMatch, playerMatch, buildReport, VERSION } from './analysis.mjs?v=team-3';
 
 const PREFIX = 'player-scan-v1:';
 const memory = new Map();
@@ -131,7 +131,7 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
     onProgress('Проверяем сохранённый отчёт…', 0);
     return lock(async () => {
       aborted(signal);
-      const cached = await read('report:'+VERSION+':'+id);
+      const cached = await read('report:'+VERSION+':team3:'+id);
       if (cached) return {...cached, cacheHit:true};
       await storage.prune?.(clock());
       onProgress('Получаем профиль из OpenDota…', 0);
@@ -159,7 +159,7 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
       report.failures = failures;
       report.sources = {steam:'Числовые Steam ID поддерживаются. Персональные ссылки /id/ пока недоступны.', stratz:'Источник статистики — OpenDota. Dotabuff и STRATZ доступны по ссылкам для самостоятельного просмотра.'};
       report.delivery = 'browser';
-      await write('report:'+VERSION+':'+id, report, failures.length ? 300000 : 1800000);
+      await write('report:'+VERSION+':team3:'+id, report, failures.length ? 300000 : 1800000);
       return report;
     });
   };
@@ -194,7 +194,7 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
       const match=await request('/matches/'+m.matchId,2592000000,signal,onProgress,compactMatch);
       if(match.version!=null){
         await write('replay:'+m.matchId,{status:'complete'},86400000);
-        await write('report:'+VERSION+':'+report.accountId,null,0);completed++;
+        await write('report:'+VERSION+':team3:'+report.accountId,null,0);completed++;
       }else if(!job || job.state==='failed' || job.failedReason){
         await write('replay:'+m.matchId,{status:'unavailable'},86400000);
       }

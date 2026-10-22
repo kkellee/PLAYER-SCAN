@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+test('creator Telegram is accessible on landing and report pages',()=>{for(const file of ['index.html','report.html']){const s=fs.readFileSync(new URL('../dist/'+file,import.meta.url),'utf8');assert.match(s,/href="https:\/\/t.me\/kklenews"/);assert.match(s,/Telegram создателя/);assert.match(s,/rel="noopener noreferrer"/);}});

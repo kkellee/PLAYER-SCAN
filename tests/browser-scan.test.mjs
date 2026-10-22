@@ -71,7 +71,7 @@ test('completed parsing requires parsed match and invalidates report',async()=>{
   const r={accountId:123,matches:[{matchId:100,hero:'Test',parsed:false}]};
   await h.scan.requestParsing(r);done=true;
   const result=await h.scan.checkParsing(r);assert.equal(result.completed,1);assert.equal(result.states[0].status,'complete');
-  assert.equal(h.data.get('player-scan-v1:report:1.0.0-beta:123').value,null);
+  assert.equal(h.data.get('player-scan-v1:report:1.0.0-beta:team3:123').value,null);
 });
 test('disappeared job with unparsed replay is not reported as success',async()=>{
   let done=false;const h=harness(url=>url.includes('/request/')?Response.json(done?null:{job:{jobId:9000}}):url.includes('/matches/')?Response.json({match_id:100,version:null,players:[]}):null);

@@ -1,6 +1,7 @@
+import {difficultLossContext} from './match-context.mjs';
 const finite=Number.isFinite;
 const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
-export const ROLE_VERSION='2.0-role';
+export const ROLE_VERSION='2.1-context';
 const labels={1:'Керри',2:'Мидер',3:'Офлейнер',4:'Поддержка',5:'Полная поддержка',support:'Поддержка',core:'Кор',unknown:'Роль не определена'};
 // Heuristic weights over hero percentiles, not role-matched population percentiles.
 const weights={
@@ -29,16 +30,17 @@ export function assessMatch(m){
   const components=(m.metrics||[]).filter(x=>w[x.key]&&finite(x.percentile)&&x.percentile>=0&&x.percentile<=100&&!(x.key==='hero_healing_per_min'&&!(x.value>0))).map(x=>({...x,weight:w[x.key]}));
   const total=components.reduce((s,x)=>s+x.weight,0);
   const eligible=!m.unavailable&&[1,2,3,4,5,22].includes(m.mode)&&m.duration>=900&&components.length>=3&&total>=60;
-  const score=eligible?Math.round(components.reduce((s,x)=>s+x.percentile*x.weight,0)/total):null;
+  let score=eligible?Math.round(components.reduce((s,x)=>s+x.percentile*x.weight,0)/total):null;
   const ordered=[...components].sort((a,b)=>b.percentile-a.percentile);
-  const title=score===null?'Недостаточно данных для оценки':score>=72?'Сильная игра':score>=58?'Хорошая игра':score>=43?'Средняя игра':score>=30?'Слабая игра':'Очень слабая игра';
-  const reasons=score===null?['Для оценки нужны обычная игра от 15 минут и достаточный набор показателей.']:ordered.filter((x,i)=>i===0||i===ordered.length-1).map(x=>`${x.label}: ${x.percentile}/100 относительно игроков на этом герое; вес в оценке ${Math.round(x.weight/total*100)}%.`);
+  const baselineScore=score;const matchContext=score!==null&&score<43?difficultLossContext(m):null;if(matchContext)score=null;
+  const title=matchContext?matchContext.title:score===null?'Недостаточно данных для оценки':score>=72?'Сильная игра':score>=58?'Хорошая игра':score>=43?'Средняя игра':score>=30?'Слабая игра':'Очень слабая игра';
+  const reasons=matchContext?[matchContext.explanation,'Эта игра исключена из средней оценки серии: данных недостаточно, чтобы отделить личные ошибки от условий матча.']:score===null?['Для оценки нужны обычная игра от 15 минут и достаточный набор показателей.']:ordered.filter((x,i)=>i===0||i===ordered.length-1).map(x=>`${x.label}: ${x.percentile}/100 относительно игроков на этом герое; вес в оценке ${Math.round(x.weight/total*100)}%.`);
   if(finite(m.killParticipation))reasons.push(`Участие в ${m.killParticipation}% убийств команды. Этот показатель не отражает все полезные действия.`);
   const costly=(m.fights||[]).filter(f=>f.deaths>0&&f.goldDelta<0);
   if(costly.length)reasons.push(`В ${costly.length} зафиксированных драках игрок погиб и потерял золото. Эти эпизоды стоит пересмотреть; причины смерти по одним цифрам не установить.`);
   if(['4','5','support'].includes(role.key)&&finite(m.player?.obs_placed))reasons.push(`Поставлено обсерверов: ${m.player.obs_placed}${finite(m.player.sen_placed)?`, сентри: ${m.player.sen_placed}`:''}. Количество установок не показывает качество обзора.`);
   const context=m.win===true?'Команда победила.':m.win===false?'Команда проиграла.':'Исход неизвестен.';
-  return {...m,score,assessment:{role,components,title,reasons,context:context+' Результат команды сам по себе не определяет личную оценку.'}};
+  return {...m,score,baselineScore,matchContext,assessment:{role,components,title,reasons,context:context+' Результат команды сам по себе не определяет личную оценку.'}};
 }
 export function reassessReport(base){
   const matches=base.matches.map(assessMatch),eligible=matches.filter(m=>m.score!==null),scores=eligible.map(m=>m.score),average=mean(scores);

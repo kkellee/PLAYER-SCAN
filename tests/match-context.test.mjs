@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {assessMatch} from '../dist/role-analysis.mjs';
+const game=()=>({win:false,mode:22,duration:1767,killParticipation:45,goldAdvantage:Array.from({length:30},(_,i)=>i>=20?13951:0),player:{player_slot:131,kills:3,assists:2,deaths:1,deaths_log:[{time:1646}]},stratz:{position:'POSITION_1'},metrics:['gold_per_min','xp_per_min','hero_damage_per_min','tower_damage','assists_per_min'].map((key,i)=>({key,label:key,value:1,percentile:i===0?24:10})),fights:[]});
+test('severe team deficit with late death and activity triggers uncertainty, not praise',()=>{const r=assessMatch(game());assert.equal(r.score,null);assert.ok(r.baselineScore<30);assert.match(r.assessment.title,/неоднозначен/);});
+test('few deaths alone never excuse passive or ordinary weak games',()=>{for(const patch of [{killParticipation:0},{goldAdvantage:[]},{win:true},{player:{...game().player,deaths_log:[{time:120}]}},{player:{...game().player,deaths:8}}])assert.notEqual(assessMatch({...game(),...patch}).score,null);});
+test('team side is respected for radiant players',()=>{const g=game();g.player.player_slot=3;assert.notEqual(assessMatch(g).score,null);g.goldAdvantage=g.goldAdvantage.map(v=>-v);assert.equal(assessMatch(g).score,null);});

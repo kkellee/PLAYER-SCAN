@@ -78,6 +78,11 @@ test('disappeared job with unparsed replay is not reported as success',async()=>
   const r={accountId:123,matches:[{matchId:100,hero:'Test',parsed:false}]};await h.scan.requestParsing(r);done=true;
   const result=await h.scan.checkParsing(r);assert.equal(result.completed,0);assert.equal(result.states[0].status,'unavailable');
 });
+test('targeted parsing requests only the selected partial match',async()=>{
+ const h=harness(url=>url.includes('/request/')?Response.json({job:{jobId:9000}}):null);
+ const r={accountId:123,matches:[{matchId:100,parsed:false},{matchId:101,parsed:false,stratz:{parsedAt:123}}]};
+ await h.scan.requestParsing(r,{matchIds:[101]});assert.equal(h.calls.length,1);assert.ok(h.calls[0].url.endsWith('/request/101'));
+});
 test('parsing 429 stops batch and respects cooldown on next attempt',async()=>{
   const h=harness(()=>Response.json({error:'minute limit'},{status:429}));
   const r={accountId:123,matches:[{matchId:100,parsed:false},{matchId:101,parsed:false}]};

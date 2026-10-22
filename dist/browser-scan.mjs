@@ -165,9 +165,9 @@ export function createBrowserScanner({ storage = browserStorage(), fetcher = glo
   };
   const validMatch = id => {if(!Number.isSafeInteger(id)||id<=0)throw new ScanError('Некорректный номер матча.',400);};
   scan.parsingStates = async report => Promise.all(report.matches.map(async m=>({...await read('replay:'+m.matchId),matchId:m.matchId,hero:m.hero,alreadyParsed:m.parsed})));
-  scan.requestParsing = async (report,{signal,onProgress=()=>{}}={}) => lock(async()=>{
+  scan.requestParsing = async (report,{signal,onProgress=()=>{},matchIds}={}) => lock(async()=>{
     const states=await scan.parsingStates(report);
-    const candidates=states.filter(s=>!s.alreadyParsed&&!s.status).slice(0,3);
+    const candidates=states.filter(s=>!s.alreadyParsed&&!s.status&&(!matchIds||matchIds.includes(s.matchId))).slice(0,3);
     for(const m of candidates){
       validMatch(m.matchId);aborted(signal);onProgress(`Отправляем реплей: ${m.hero}…`);
       try {

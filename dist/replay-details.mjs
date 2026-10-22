@@ -21,7 +21,7 @@ export function entriesFor(data){
   return Object.entries(data||{}).filter(([,v])=>Number.isFinite(v)&&v>=0).sort((a,b)=>b[1]-a[1]);
 }
 export function rankingHTML(data,{title,unit='урона',share=false,empty='Нет подробностей в полученном разборе.'}={}){
-  const entries=entriesFor(data),max=Math.max(1,...entries.map(([,v])=>v)),sum=entries.reduce((s,[,v])=>s+v,0);
+  const entries=entriesFor(data);if(!entries.length)return '';const max=Math.max(1,...entries.map(([,v])=>v)),sum=entries.reduce((s,[,v])=>s+v,0);
   const rows=entries.map(([key,v])=>{const meta=sourceInfo(key);return `<div class="source-row">${icon(meta)}<div><div class="source-label"><span>${esc(meta.name)}</span><b>${n(v)} <small>${esc(unit)}</small></b></div><div class="source-bar"><i style="width:${v/max*100}%"></i></div>${share?`<small>${sum?Math.round(v/sum*100):0}% от показанной разбивки</small>`:''}</div></div>`;});
   return `<section class="detail-ranking"><h4>${esc(title)}</h4>${entries.length?`<div class="source-ranking">${rows.slice(0,8).join('')}${rows.length>8?`<details class="more-sources"><summary>Показать остальные (${rows.length-8})</summary>${rows.slice(8).join('')}</details>`:''}</div>`:`<p class="muted">${esc(empty)}</p>`}</section>`;
 }
@@ -82,7 +82,7 @@ export function eventsHTML(m){
 }
 export function detailedReplayHTML(m){
   return `<details open class="detail-section"><summary>Способности, предметы и урон</summary>${combatHTML(m)}</details>
-  <details open class="detail-section"><summary>Обзор и помощь команде</summary>${visionHTML(m)}</details>
+  ${m.parsed?`<details open class="detail-section"><summary>Обзор и помощь команде</summary>${visionHTML(m)}</details>`:''}
   <details class="detail-section"><summary>Фарм и темп игры</summary>${farmHTML(m)}</details>
   <details class="detail-section"><summary>Убийства, смерти, выкупы и руны</summary>${eventsHTML(m)}</details>`;
 }

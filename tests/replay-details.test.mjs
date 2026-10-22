@@ -16,7 +16,7 @@ test('breakdowns preserve zero and exclude absent, negative and malformed observ
 });
 test('unknown names are escaped and missing breakdown is explained',()=>{
   assert.doesNotMatch(rankingHTML({'<img onerror=x>':3},{title:'test'}),/<img onerror/);
-  assert.match(rankingHTML(undefined,{title:'Урон'}),/Нет подробностей/);
+  assert.equal(rankingHTML(undefined,{title:'Урон'}),'');
 });
 test('wards use true coordinates, sort by time and ignore removal events',()=>{
   const events=wardEvents({obs_log:[{x:64,y:191,time:20},{x:90,y:100,time:30,entityleft:true}],sen_log:[{x:191,y:64,time:10},{time:40}]});

@@ -10,7 +10,7 @@ import {detailedReplayHTML,mountReplayDetails} from './replay-details.mjs?v=part
 import {heroPortrait,purchasesHTML,laneMapHTML,fightsHTML,economyHTML,mountReplayVisuals} from './replay-visuals.mjs?v=roles-1';
 import {replayFacts} from './replay-view.mjs?v=viewer-1';
 import {rememberSearch} from './history.mjs';
-import {mountParsing,parsePanelHTML} from './parsing-ui.mjs?v=partial-1';
+import {mountParsing,parsePanelHTML} from './parsing-ui.mjs?v=kda-1';
 import { createBrowserScanner } from './browser-scan.mjs?v=partial-1';
 import { enrichReport } from './enrichment.mjs?v=sources-1';
 const scanPlayer = createBrowserScanner();
